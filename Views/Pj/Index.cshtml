@@ -1,0 +1,152 @@
+﻿@using Dou.Misc.Extension
+
+@Html.DataManagerOptionsJavascript(null, "douoptions")
+
+@*iframe嵌入隱藏Header*@
+@{
+    string isiframe = Request.Params["isiframe"] == null ? "" : Request.Params["isiframe"];
+
+    if (isiframe == "Y")
+    {
+        <script>
+            $("header").remove();
+        </script>
+    }
+    else
+    {
+        @Html.MenuMap();
+    }
+}
+
+<script>
+    $(document).ready(function () {
+        douoptions.afterAddServerData = function (row, callback) {
+            $_masterTable.douTable('destroy');
+            jspAlertMsg($("body"), { autoclose: 2000, content: '新增資料完成!!', classes: 'modal-sm' },
+                function () { location.reload(); });
+        }
+
+        douoptions.afterCreateEditDataForm = function ($container, row) {
+            //編輯UI
+            var ppp = $container.find('div[data-field=PjNoM]');
+            ppp.find('.field-content').removeClass('col-sm-12');
+            ppp.find('.field-content').addClass('col-sm-7');
+            ppp.find('.field-content').wrap('<div class="row"></div>');
+
+            var btn = '<div class="btn btn-default btn-sm glyphicon glyphicon-share-alt col-sm-1" title="匯入至對照表"></div>';
+            $(btn).appendTo($(ppp).find('.row'));
+
+            //初始
+            setEditUI();
+
+            //點選
+            $container.find('div[data-field=IsPre]').change(function () {
+                setEditUI();
+            });
+            $container.find('div[data-field=PrjStatus]').change(function () {
+                setEditUI();
+            });
+
+            $container.find('div[data-field=PreEnddate]').focusout(function () {
+                if ($('.modal-content').find('div[data-field=PrjStartDate]').is(":visible")) {
+                    //專案起始日，有顯示
+                    var preEnddate = $('.modal-content').find('div[data-field=PreEnddate] input').val();
+                    if (preEnddate != '') {
+                        //合法日期資料
+                        var prjStartDate = JsonDateStr2Datetime(preEnddate).addHours(24);
+                        if (!isNaN(prjStartDate)) {
+                            $('.modal-content').find('div[data-field=PrjStartDate] input').val(prjStartDate.DateFormat("yyyy-MM-dd"));
+                        }
+                    }
+                }
+            });
+
+            //財務專案編號匯入
+            $container.find('.glyphicon-share-alt').click(function () {
+
+                //組新urow
+                var urow = {};
+                urow.PrjID = $('.modal-content').find('div[data-field=PrjID] input').val();
+                urow.PjNoM = $('.modal-content').find('div[data-field=PjNoM] input').val();
+
+                if (urow.PjNoM == "") {
+                    alert("財務專案標號空值，無法正常匯入");
+                    return;
+                }
+
+                helper.misc.showBusyIndicator();
+                $.ajax({
+                    url: $.AppConfigOptions.baseurl + 'Pj/importMap',
+                    datatype: "json",
+                    type: "POST",
+                    data: { "objs": $.isArray(urow) ? urow : [urow] },
+                    success: function (data) {
+                        if (data.result) {
+                            //找不到物件,Model.EditType(input => textarea)
+                            //$('.modal-content').find('div[data-field=PjNameM] textarea').val(data.pjNameM);
+                            $('.modal-content').find('[data-fn=PjNameM]').val(data.pjNameM);
+                            alert("對照表更新成功");
+                        } else {
+                            alert("對照表更新失敗：" + data.errorMessage);
+                        }
+                    },
+                    complete: function () {
+                        helper.misc.hideBusyIndicator();
+                    }
+                });
+            });
+        }
+
+        $_masterTable = $("#_table").DouEditableTable(douoptions); //初始dou table
+    });
+
+    //設定編輯UI
+    function setEditUI() {
+
+        var isPre = $('.modal-content').find('div[data-field=IsPre]').find('input:checked').val();
+
+        if (isPre.toLowerCase() === 'true') {
+            //備標
+            $('.modal-content').find('div[data-field=PrjStartDate] input').prop("disabled", true);
+            $('.modal-content').find('div[data-field=PrjStartDate] input').val("");
+            $('.modal-content').find('div[data-field=PreStartdate]').show();
+            $('.modal-content').find('div[data-field=PreEnddate]').show();
+
+            //備標結束時間+1天
+            //if ($('.modal-content').find('div[data-field=PrjStartDate] input').val() == "") {
+            var preEnddate = $('.modal-content').find('div[data-field=PreEnddate] input').val();
+            if (preEnddate != '') {
+                //合法日期資料
+                var prjStartDate = JsonDateStr2Datetime(preEnddate).addHours(24);
+                if (!isNaN(prjStartDate)) {
+                    $('.modal-content').find('div[data-field=PrjStartDate] input').val(prjStartDate.DateFormat("yyyy-MM-dd"));
+                }
+            }
+        }
+        else {
+            //非備標
+            $('.modal-content').find('div[data-field=PrjStartDate] input').prop("disabled", false);
+            $('.modal-content').find('div[data-field=PreStartdate]').hide();
+            $('.modal-content').find('div[data-field=PreStartdate] input').val("");
+            $('.modal-content').find('div[data-field=PreEnddate]').hide();
+            $('.modal-content').find('div[data-field=PreEnddate] input').val("");
+        }
+
+        //未得標狀態不顯示專案開始日期和專案結束日期
+        var prjStatus = $('.modal-content').find('div[data-field=PrjStatus]').find('option:selected').val();
+        if (prjStatus === '2') {
+            //未得標
+            $('.modal-content').find('div[data-field=PrjStartDate]').hide();
+            $('.modal-content').find('div[data-field=PrjStartDate] input').val("");
+            $('.modal-content').find('div[data-field=PrjEndDate]').hide();
+            $('.modal-content').find('div[data-field=PrjEndDate] input').val("");
+        }
+        else {
+            $('.modal-content').find('div[data-field=PrjStartDate]').show();
+            $('.modal-content').find('div[data-field=PrjEndDate]').show();
+        }
+    }
+
+</script>
+
+<table id="_table"></table>

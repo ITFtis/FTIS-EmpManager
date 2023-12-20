@@ -1,0 +1,24 @@
+﻿@*<script src="~/Scripts/prj/DeptoFno.js"></script>*@
+<script src="~/Scripts/prj/emp.js"></script>
+@using Dou.Misc.Extension
+@Html.DataManagerOptionsJavascript(null, "douoptions")
+
+@*iframe嵌入隱藏Header*@
+@{
+    string isiframe = Request.Params["isiframe"] == null ? "" : Request.Params["isiframe"];
+
+    if (isiframe == "Y")
+    {
+        <script>
+            $("header").remove();
+        </script>
+    }
+    else
+    {
+        @Html.MenuMap();
+    }
+}
+
+<div id="_tabs">
+    <table id="_table" style="font-size:0.5rem"></table>
+</div>
