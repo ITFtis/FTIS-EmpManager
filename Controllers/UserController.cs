@@ -1,5 +1,6 @@
 ﻿using Dou.Help;
 using Dou.Misc;
+using Dou.Models;
 using Dou.Models.DB;
 using DouImp.Models;
 using System;
@@ -122,9 +123,20 @@ namespace DouImp.Controllers
                         }
                         else //系統尚無此使用者
                         {
+                            //user = new User() { Id = ssouid, Name = ssouname, Enabled = false };
+                            //this.AddDBObject(GetModelEntity(), new User[] { user });
+                            //配置預設角色(role)
+                            Dou.Models.DB.IModelEntity<Role> dbEntityRole = new Dou.Models.DB.ModelEntity<Role>(_dbContext);
+                            var role = dbEntityRole.Get(a => a.Id.ToUpper() == "ViewAllRole".ToUpper());
 
-                            user = new User() { Id = ssouid, Name = ssouname, Enabled = false };
-                            this.AddDBObject(GetModelEntity(), new User[] { user });
+                            //20240129, add by markhong 正祥請求協助幫忙當員工第一次登入時系統無資料自動給予身分
+                            if (role != null)
+                            {
+                                //要有配置角色+DefaultPage 不然會無限迴圈
+                                user = new User() { Id = ssouid, Name = ssouname, Enabled = true, DefaultPage = "EmpBasic", Remark = "系統新增" };
+                                user.RoleUsers = new RoleUser[] { new RoleUser { RoleId = role.Id, UserId = user.Id } }.ToList();
+                                this.AddDBObject(GetModelEntity(), new User[] { user });
+                            }
                         }
                         redirectLogin = false;
                     }
