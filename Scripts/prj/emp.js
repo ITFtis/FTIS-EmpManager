@@ -572,8 +572,45 @@
         alert('已取消勾選');
     };
 
+    //清單匯出聯絡資料
+    var f = {};
+    f.item = '<span class="btn btn-success glyphicon glyphicon-download-alt"> 聯絡資料</span>';
+    f.event = 'click .glyphicon-download-alt';
+    f.callback = function importQdate(evt) {
+
+        //aryCheck(勾選員編)
+        if (aryCheck.length == 0) {
+            alert('尚未勾選員工');
+            return false;
+        }
+
+        helper.misc.showBusyIndicator();
+        $.ajax({
+            url: app.siteRoot + 'Emp/ExportContract',
+            datatype: "json",
+            type: "Post",
+            data: { "Fnos": aryCheck },
+            success: function (data) {
+                if (data.result) {
+                    location.href = app.siteRoot + data.url;
+                    //alert("產出聯絡資料成功：");
+                } else {
+                    alert("產出聯絡資料失敗：\n" + data.errorMessage);
+                }
+            },
+            complete: function () {
+                helper.misc.hideBusyIndicator();
+            },
+            error: function (xhr, status, error) {
+                var err = eval("(" + xhr.responseText + ")");
+                alert(err.Message);
+                helper.misc.hideBusyIndicator();
+            }
+        });
+    };
+
     douoptions.useMutiSelect = true;
-    douoptions.appendCustomToolbars = [a, b, c];
+    douoptions.appendCustomToolbars = [a, b, f, c];
 
     var $_masterTable = $("#_table").DouEditableTable(douoptions).on($.dou.events.add, function (e, row) {
         

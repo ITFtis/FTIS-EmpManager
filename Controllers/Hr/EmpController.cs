@@ -273,5 +273,21 @@ namespace DouImp.Controllers
             ////return Json(new { result = true }, JsonRequestBehavior.AllowGet);
         }
 
+
+        //匯出員工聯絡資料
+        public ActionResult ExportContract(List<string> Fnos)
+        {
+            Rpt_EmpContract rep = new Rpt_EmpContract();
+            string url = rep.Export(Fnos);
+
+            if (url == "")
+            {
+                return Json(new { result = false, errorMessage = rep.ErrorMessage }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new { result = true, url = url }, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }

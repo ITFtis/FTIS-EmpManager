@@ -14,6 +14,7 @@ namespace DouImp
             履歷表 = 2,
             新人簡報 = 3,
             員工晉升 = 4,
+            員工聯絡資料 = 5,
         }
 
         public enum UploadFile
