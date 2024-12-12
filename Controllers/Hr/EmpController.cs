@@ -53,7 +53,7 @@ namespace DouImp.Controllers
         {
             //編輯或權限功能
             var cusPowerRole = Dou.Context.CurrentUser<User>().CusPowerRole();
-            var cusPowerKPIFnos = Dou.Context.CurrentUser<User>().CusPowerKPIFnos();
+            ////var cusPowerKPIFnos = Dou.Context.CurrentUser<User>().CusPowerKPIFnos();
 
 
             if (cusPowerRole.Key == "admin" || cusPowerRole.Key == "hr")
@@ -64,9 +64,13 @@ namespace DouImp.Controllers
             {
                 string Fno = Dou.Context.CurrentUser<User>().Id;
 
+                //人資，提出權限確認關閉
                 //查詢自己或屬下員工
-                iquery = iquery.Where(a => Fno == a.Fno
-                                || cusPowerKPIFnos.Any(b => b == a.Fno));
+                iquery = iquery.Where(a => Fno == a.Fno);
+
+                //////查詢自己或屬下員工
+                ////iquery = iquery.Where(a => Fno == a.Fno
+                ////                || cusPowerKPIFnos.Any(b => b == a.Fno));
             }
 
             ////////Test Left Join
@@ -90,7 +94,6 @@ namespace DouImp.Controllers
 
             //編輯或權限功能
             var cusPowerRole = Dou.Context.CurrentUser<User>().CusPowerRole();
-            var cusPowerKPIFnos = Dou.Context.CurrentUser<User>().CusPowerKPIFnos();
 
             if (cusPowerRole.Key == "admin" || cusPowerRole.Key == "hr")
             {
